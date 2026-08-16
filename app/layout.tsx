@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CTHL · Diagnóstico Pruebas Saber",
   description: "Diagnóstico integral de Pruebas Saber para establecimientos educativos de Bolívar",
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
