@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "./firebase";
-
+import AccessGate from "./context/AccessGate";
+import { useAuth } from "./context/AuthContext";
 // Paleta oficial — Manual de Marca Hilder Lapeira / CTHL
 const COLOR_TEAL = "#24ACB5";
 const COLOR_AZUL = "#1D74BB";
@@ -59,7 +60,7 @@ export default function Home() {
   const [resultados, setResultados] = useState<Resultado[]>([]);
   const [benchmark, setBenchmark] = useState<Benchmark | null>(null);
   const [cargandoDetalle, setCargandoDetalle] = useState(false);
-
+  const { user, logout } = useAuth();
   useEffect(() => {
     async function cargarColegios() {
       const snap = await getDocs(collection(db, "colegios"));
@@ -131,9 +132,23 @@ export default function Home() {
         <p className="text-base md:text-lg mt-3" style={{ color: COLOR_AZUL_CLARO }}>
           Bolívar · histórico 2021–2025 · comparado con el promedio departamental y nacional
         </p>
-      </header>
+     </header>
 
       <div className="max-w-4xl mx-auto px-6 py-10 md:py-14">
+        {user && (
+          <div className="mb-6 flex items-center justify-between rounded-xl bg-white px-5 py-3 shadow-sm">
+            <span className="text-sm" style={{ color: COLOR_GRIS }}>
+              Sesión iniciada: <strong>{user.email}</strong>
+            </span>
+            <button
+              onClick={logout}
+              className="text-sm font-medium hover:opacity-80"
+              style={{ color: COLOR_AZUL }}
+            >
+              Cerrar sesión
+            </button>
+          </div>
+        )}
         {/* Buscador */}
         <div className="relative mb-12">
           <input
@@ -228,76 +243,92 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
-
-                {/* Histórico por área */}
-                <div className="bg-white rounded-2xl shadow-md p-6 md:p-8 mb-10">
-                  <h3 className="text-lg font-bold mb-4" style={{ color: COLOR_AZUL }}>
-                    Histórico por área
-                  </h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm md:text-base border-collapse">
-                      <thead>
-                        <tr className="text-left border-b-2" style={{ borderColor: COLOR_TEAL }}>
-                          <th className="py-3 pr-4">Año</th>
-                          {areas.map((a) => (
-                            <th key={a.clave} className="py-3 pr-4">
-                              {a.etiqueta}
-                            </th>
-                          ))}
-                          <th className="py-3 pr-4">Global</th>
-                          <th className="py-3 pr-4">Estudiantes</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {resultados.map((r) => (
-                          <tr key={r.anio} className="border-b border-gray-100">
-                            <td className="py-3 pr-4 font-semibold">{r.anio}</td>
+<AccessGate
+                  fallback={
+                    <div className="bg-white rounded-2xl shadow-md p-8 text-center">
+                      <h3 className="text-lg font-bold mb-2" style={{ color: COLOR_AZUL }}>
+                        Diagnóstico completo disponible con cuenta
+                      </h3>
+                      <p className="text-sm md:text-base mb-5" style={{ color: COLOR_GRIS }}>
+                        Inicia sesión para ver el histórico completo por área, el desglose
+                        de niveles de desempeño y los comparativos detallados de este colegio.
+                      </p>
+                      <a href="/login" className="inline-block rounded-md px-6 py-3 font-medium text-white hover:opacity-90" style={{ background: COLOR_AZUL }}>
+                        Iniciar sesión
+                      </a>
+                    </div>
+                  }
+                >
+                  {/* Histórico por área */}
+                  <div className="bg-white rounded-2xl shadow-md p-6 md:p-8 mb-10">
+                    <h3 className="text-lg font-bold mb-4" style={{ color: COLOR_AZUL }}>
+                      Histórico por área
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm md:text-base border-collapse">
+                        <thead>
+                          <tr className="text-left border-b-2" style={{ borderColor: COLOR_TEAL }}>
+                            <th className="py-3 pr-4">Año</th>
                             {areas.map((a) => (
-                              <td key={a.clave} className="py-3 pr-4">
-                                {(r as any)[`prom_${a.clave}`]?.toFixed(1) ?? "—"}
-                              </td>
+                              <th key={a.clave} className="py-3 pr-4">
+                                {a.etiqueta}
+                              </th>
                             ))}
-                            <td className="py-3 pr-4 font-semibold" style={{ color: COLOR_AZUL }}>
-                              {r.prom_global?.toFixed(1)}
-                            </td>
-                            <td className="py-3 pr-4" style={{ color: COLOR_GRIS }}>{r.n_estudiantes}</td>
+                            <th className="py-3 pr-4">Global</th>
+                            <th className="py-3 pr-4">Estudiantes</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {resultados.map((r) => (
+                            <tr key={r.anio} className="border-b border-gray-100">
+                              <td className="py-3 pr-4 font-semibold">{r.anio}</td>
+                              {areas.map((a) => (
+                                <td key={a.clave} className="py-3 pr-4">
+                                  {(r as any)[`prom_${a.clave}`]?.toFixed(1) ?? "—"}
+                                </td>
+                              ))}
+                              <td className="py-3 pr-4 font-semibold" style={{ color: COLOR_AZUL }}>
+                                {r.prom_global?.toFixed(1)}
+                              </td>
+                              <td className="py-3 pr-4" style={{ color: COLOR_GRIS }}>{r.n_estudiantes}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
 
-                {/* % nivel bajo por área */}
-                <div className="bg-white rounded-2xl shadow-md p-6 md:p-8">
-                  <h3 className="text-lg font-bold mb-5" style={{ color: COLOR_AZUL }}>
-                    % de estudiantes en nivel bajo por área ({ultimo.anio})
-                  </h3>
-                  <div className="space-y-4">
-                    {areas.map((a) => {
-                      const valor = (ultimo as any)[`pct_nivel_bajo_${a.clave}`] as number | null;
-                      return (
-                        <div key={a.clave} className="flex items-center gap-4">
-                          <span className="w-36 text-sm md:text-base shrink-0 font-medium" style={{ color: COLOR_GRIS }}>
-                            {a.etiqueta}
-                          </span>
-                          <div className="flex-1 bg-gray-100 rounded-full h-6 relative overflow-hidden">
-                            <div
-                              className="h-6 rounded-full transition-all"
-                              style={{
-                                width: `${valor ?? 0}%`,
-                                background: `linear-gradient(90deg, ${COLOR_AZUL_CLARO}, ${COLOR_TEAL})`,
-                              }}
-                            />
+                  {/* % nivel bajo por área */}
+                  <div className="bg-white rounded-2xl shadow-md p-6 md:p-8">
+                    <h3 className="text-lg font-bold mb-5" style={{ color: COLOR_AZUL }}>
+                      % de estudiantes en nivel bajo por área ({ultimo.anio})
+                    </h3>
+                    <div className="space-y-4">
+                      {areas.map((a) => {
+                        const valor = (ultimo as any)[`pct_nivel_bajo_${a.clave}`] as number | null;
+                        return (
+                          <div key={a.clave} className="flex items-center gap-4">
+                            <span className="w-36 text-sm md:text-base shrink-0 font-medium" style={{ color: COLOR_GRIS }}>
+                              {a.etiqueta}
+                            </span>
+                            <div className="flex-1 bg-gray-100 rounded-full h-6 relative overflow-hidden">
+                              <div
+                                className="h-6 rounded-full transition-all"
+                                style={{
+                                  width: `${valor ?? 0}%`,
+                                  background: `linear-gradient(90deg, ${COLOR_AZUL_CLARO}, ${COLOR_TEAL})`,
+                                }}
+                              />
+                            </div>
+                            <span className="w-14 text-base text-right font-bold" style={{ color: COLOR_AZUL }}>
+                              {valor !== null && valor !== undefined ? `${valor.toFixed(0)}%` : "—"}
+                            </span>
                           </div>
-                          <span className="w-14 text-base text-right font-bold" style={{ color: COLOR_AZUL }}>
-                            {valor !== null && valor !== undefined ? `${valor.toFixed(0)}%` : "—"}
-                          </span>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                </AccessGate>
               </>
             )}
           </div>
