@@ -82,13 +82,20 @@ export default function LoginPage() {
           <div className="h-px flex-1 bg-gray-200" />
         </div>
 
-        <button
+       <button
           onClick={handleGoogleLogin}
           disabled={loading}
           className="w-full rounded-md border border-gray-300 py-2 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
         >
           Continuar con Google
         </button>
+
+        <p className="mt-5 text-center text-sm text-gray-500">
+          ¿No tienes cuenta?{" "}
+          <a href="/registro" className="font-medium text-[#1D74BB] hover:underline">
+            Regístrate aquí
+          </a>
+        </p>
       </div>
     </div>
   );

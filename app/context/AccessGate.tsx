@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import { useAuth } from "./AuthContext";
 import { useUserData } from "./useUserData";
+import CompletarPerfil from "./CompletarPerfil";
 
 export default function AccessGate({
   children,
@@ -55,7 +56,13 @@ export default function AccessGate({
       </div>
     );
   }
+  // Verificó correo, pero le faltan datos del perfil (típico de login con Google)
+  const perfilIncompleto =
+    !userData?.colegio || !userData?.cargo || !userData?.telefono;
 
+  if (perfilIncompleto) {
+    return <CompletarPerfil />;
+  }
   // Verificó el correo, pero aún no lo aprueba el equipo
  // A partir de aquí, solo se deja pasar si el estado es explícitamente "aprobado".
   // Cualquier otro caso (pendiente, rechazado, o perfil inexistente) queda bloqueado.

@@ -14,11 +14,18 @@ import {
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
+interface DatosRegistro {
+  nombre: string;
+  colegio: string;
+  cargo: string;
+  telefono: string;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   loginEmail: (email: string, password: string) => Promise<void>;
-  registerEmail: (email: string, password: string, nombre: string) => Promise<void>;
+  registerEmail: (email: string, password: string, datos: DatosRegistro) => Promise<void>;
   loginGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   reenviarVerificacion: () => Promise<void>;
@@ -26,13 +33,16 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-async function crearPerfilSiNoExiste(user: User, nombre?: string) {
+async function crearPerfilSiNoExiste(user: User, datos?: Partial<DatosRegistro>) {
   const ref = doc(db, "usuarios", user.uid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
     await setDoc(ref, {
       email: user.email,
-      nombre: nombre || user.displayName || "",
+      nombre: datos?.nombre || user.displayName || "",
+      colegio: datos?.colegio || "",
+      cargo: datos?.cargo || "",
+      telefono: datos?.telefono || "",
       estado: "pendiente",
       rol: "basico",
       fechaRegistro: serverTimestamp(),
@@ -56,9 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const registerEmail = async (email: string, password: string, nombre: string) => {
+  const registerEmail = async (email: string, password: string, datos: DatosRegistro) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    await crearPerfilSiNoExiste(cred.user, nombre);
+    await crearPerfilSiNoExiste(cred.user, datos);
     await sendEmailVerification(cred.user);
   };
 
@@ -66,7 +76,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const provider = new GoogleAuthProvider();
     const cred = await signInWithPopup(auth, provider);
     await crearPerfilSiNoExiste(cred.user);
-    // Google ya verifica el correo por su cuenta, no hace falta enviar nada aquí
   };
 
   const logout = async () => {

@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "./AuthContext";
 
 export interface UserData {
   email: string;
   nombre: string;
+  colegio: string;
+  cargo: string;
+  telefono: string;
   estado: "pendiente" | "aprobado" | "rechazado";
   rol: "basico" | "premium" | "admin";
 }
@@ -38,5 +41,11 @@ export function useUserData() {
     return () => unsubscribe();
   }, [user]);
 
-  return { userData, loading };
+  async function actualizarPerfil(datos: { colegio: string; cargo: string; telefono: string }) {
+    if (!user) return;
+    const ref = doc(db, "usuarios", user.uid);
+    await updateDoc(ref, datos);
+  }
+
+  return { userData, loading, actualizarPerfil };
 }
