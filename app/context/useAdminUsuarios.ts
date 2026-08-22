@@ -12,7 +12,7 @@ export interface UsuarioAdmin {
   cargo: string;
   telefono: string;
   estado: "pendiente" | "aprobado" | "rechazado";
-  rol: "basico" | "premium" | "admin";
+  rol: "basico" | "premium" | "institucional" | "admin";
 }
 
 export function useAdminUsuarios() {
