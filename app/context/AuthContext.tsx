@@ -45,6 +45,8 @@ async function crearPerfilSiNoExiste(user: User, datos?: Partial<DatosRegistro>)
       telefono: datos?.telefono || "",
       estado: "pendiente",
       rol: "basico",
+      gestionColegio: false,
+      colegioId: "",
       fechaRegistro: serverTimestamp(),
     });
   }

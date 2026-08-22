@@ -5,6 +5,7 @@ import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import AccessGate from "./context/AccessGate";
 import { useAuth } from "./context/AuthContext";
+import { useUserData } from "./context/useUserData";
 // Paleta oficial — Manual de Marca Hilder Lapeira / CTHL
 const COLOR_TEAL = "#24ACB5";
 const COLOR_AZUL = "#1D74BB";
@@ -61,6 +62,7 @@ export default function Home() {
   const [benchmark, setBenchmark] = useState<Benchmark | null>(null);
   const [cargandoDetalle, setCargandoDetalle] = useState(false);
   const { user, logout } = useAuth();
+  const { userData } = useUserData();
   useEffect(() => {
     async function cargarColegios() {
       const snap = await getDocs(collection(db, "colegios"));
@@ -132,7 +134,7 @@ export default function Home() {
         <p className="text-base md:text-lg mt-3" style={{ color: COLOR_AZUL_CLARO }}>
           Bolívar · histórico 2021–2025 · comparado con el promedio departamental y nacional
         </p>
-     </header>
+         </header>
 
       <div className="max-w-4xl mx-auto px-6 py-10 md:py-14">
         {user && (
@@ -140,13 +142,20 @@ export default function Home() {
             <span className="text-sm" style={{ color: COLOR_GRIS }}>
               Sesión iniciada: <strong>{user.email}</strong>
             </span>
-            <button
-              onClick={logout}
-              className="text-sm font-medium hover:opacity-80"
-              style={{ color: COLOR_AZUL }}
-            >
-              Cerrar sesión
-            </button>
+                        <div className="flex items-center gap-4">
+              {userData?.rol === "admin" && (
+                <a href="/admin" className="text-sm font-medium hover:opacity-80" style={{ color: COLOR_TEAL }}>
+                  Panel admin
+                </a>
+              )}
+              <button
+                onClick={logout}
+                className="text-sm font-medium hover:opacity-80"
+                style={{ color: COLOR_AZUL }}
+              >
+                Cerrar sesión
+              </button>
+            </div>
           </div>
         )}
         {/* Buscador */}
