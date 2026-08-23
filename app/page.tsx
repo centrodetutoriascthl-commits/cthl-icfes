@@ -158,6 +158,11 @@ export default function Home() {
             </div>
           </div>
         )}
+     <div className="mb-6 flex justify-center">
+          <a href="/comparar" className="rounded-md px-5 py-2.5 text-sm font-medium text-white hover:opacity-90" style={{ background: COLOR_TEAL }}>
+            Comparar colegios
+          </a>
+      </div>
         {/* Buscador */}
         <div className="relative mb-12">
           <input
